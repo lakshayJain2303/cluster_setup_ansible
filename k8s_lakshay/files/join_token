@@ -1,0 +1,1 @@
+kubeadm join 10.151.16.191:6443 --token djllm9.eu34xhnwo4n1xdjb     --discovery-token-ca-cert-hash sha256:8eecbf5aafad114dfea193010bbb882ef5f6e643396d505877fec795bf12fd56 

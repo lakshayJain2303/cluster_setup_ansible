@@ -1,0 +1,20 @@
+---
+ - name: nginx-deplyment
+   hosts: master
+   vars_files:
+   - env_variables
+   become: yes
+   become_method: su
+   become_user: kubemaster
+   tasks:
+     - name: check if nginx present
+       shell: |
+         helm ls --namespace={{ platform_namespace }} --filter nginx
+       register: nginx
+       changed_when: false
+     - name: deploy if not present
+       become: yes
+       become_method: su
+       become_user: kubemaster
+       shell: helm install nginx stable/nginx-ingress
+       when : "'nginx' not in nginx.stdout"

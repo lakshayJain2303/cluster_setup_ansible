@@ -1,0 +1,17 @@
+---
+-  name: joining nodes to master
+   hosts: slave
+   vars_files:
+   - /opt/k8s_lakshay/env_variables
+   tasks:
+     -  name: copyinh join command to worker node
+        copy:
+          src: "{{token_file}}"
+          dest: /tmp/join_token
+
+     -  name: joining all nodes to master
+        shell: |
+          kubeadm reset -f
+          cat /tmp/join_token > /tmp/out.sh
+          sh /tmp/out.sh
+

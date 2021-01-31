@@ -1,0 +1,25 @@
+---
+  - name: Deploying activeMQ
+    hosts: master
+    vars_files:
+    -  /opt/k8s_lakshay/env_variables
+    become: yes
+    become_method: su
+    become_user: kubemaster
+    tasks:
+     -  name: coyping pv file
+        copy:
+          src: /opt/k8s_lakshay/files/activemq-pv.yaml
+          dest: /tmp/activemq-pv.yaml
+     -  name: createing activemq pv
+        shell: kubectl create -f /tmp/activemq-pv.yaml
+        changed_when: false
+     
+     -  name: check if activemq in present
+        shell: helm ls --namespace={{ platform_namespace }} --filter activemq
+        register: activemq
+        changed_when: false
+    
+     -  name: deploy activemq
+        shell: helm install activemq sterlite/activemq --namespace={{ platform_namespace }}
+        when: "'activemq' not in activemq.stdout" 

@@ -1,0 +1,13 @@
+
+master ansible_host=192.168.4.177
+node1 ansible_host=192.168.4.175
+
+[tupil]
+master
+node1
+
+[master]
+master
+
+[slave]
+node1

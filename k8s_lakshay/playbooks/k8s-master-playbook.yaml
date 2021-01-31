@@ -1,0 +1,77 @@
+---
+-  name: prereuisite for master node
+   hosts: master
+   vars_files:
+   - /opt/k8s_lakshay/env_variables
+   tasks:
+     -  name: Disabling Swap on master
+        shell: swapoff -a
+     
+     -  name: disable selinux on nodes
+        command: sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+
+     -  name: copy kubernetes.repo file
+        copy:
+          src: /opt/k8s_lakshay/files/kubernetes.repo
+          dest: /etc/yum.repos.d/kubernetes.repo
+
+     -  name: install packages on nodes
+        yum:
+          name: "{{ item }}"
+          state: present
+        with_items: "{{ packages }}"
+     
+     -  name: restarting kubelet
+        command: systemctl restart kubelet
+     -  name:  enableing kublet
+        command: systemctl enable kubelet      
+
+     -  name: Enabling Bridge Firewall Rule
+        shell: "echo '1' > /proc/sys/net/bridge/bridge-nf-call-iptables"
+     
+     -  name: disable selinux on nodes
+        command: sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+
+     
+     -  name: kubeadm initilaizing
+        shell: kubeadm init
+
+    
+     -  name: Copying required files within master server
+        become: yes
+        shell: |
+          mkdir -p $HOME/.kube
+          sudo cp -f /etc/kubernetes/admin.conf $HOME/.kube/config
+          sudo chown $(id -u):$(id -g) $HOME/.kube/config
+        become_user: kubemaster
+
+     -  name: install weave pod network
+        become: yes
+        become_user: kubemaster 
+        shell: |
+          export kubever=$(kubectl version | base64 | tr -d '\n')
+          kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$kubever"
+
+     -  name: generating join command
+        become: yes
+        become_user: kubemaster
+        shell: kubeadm token create --print-join-command
+        register: join_command
+
+     -  name: Storing Logs and Generated token for future purpose.
+        local_action: copy content={{ join_command.stdout }} dest={{ token_file }}
+
+     -  name: copy helm
+        copy:
+          src: /opt/k8s_lakshay/files/helm
+          dest: /usr/local/bin/helm
+
+     -  name: Making helm work for kubemaster user
+        shell: |
+          cd /usr/local/bin
+          chown kubemaster:kubemaster helm
+          chmod 777 helm
+
+     
+          
+ 

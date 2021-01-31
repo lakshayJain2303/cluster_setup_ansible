@@ -1,0 +1,15 @@
+packages:
+- kubeadm-1.17.4-0.x86_64
+- kubectl-1.17.4-0.x86_64
+- kubelet-1.17.4-0.x86_64
+
+services:
+- kubelet-1.17.4-0.x86_64
+
+token_file: join_token
+
+user: kubemaster
+
+home: /opt/kubemaster
+
+platform_namespace: default
